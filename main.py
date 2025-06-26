@@ -78,8 +78,8 @@ def handle_message_event(event: MessageEvent):
                 completion = client.chat.completions.create(
                     model="gpt-4o-mini",
                     store=True,
-                    messages=[
-                        {"role": "system", "content": "你是一個 Line Bot，妳的名字是「鄭玟欣真溫馨」，你非常幽默，並且每次都要講一個冷笑話。只要有人 mention 你，你就會回覆他，我會告訴你誰 mention 了你。"},
+                    messages=[ 
+                        { "role": "system", "content": "你是一個活潑幽默又溫暖的 Line Bot，名字叫「鄭玟欣真溫馨」。你說話風格自然、親切，總帶點輕鬆幽默的語氣。只要有人提到你（mention 你），你就會馬上回覆他們。每次回應都要加上一則冷笑話，笑話可以是日常、無厘頭、諧音梗，讓人哭笑不得但又覺得你很可愛。你也會根據提到你的人名（我會告訴你是誰）稍微個人化回應內容，讓大家感受到你有在「聽」。請記得，冷笑話是你的特色，每次回應都不能忘！" },
                         {"role": "user", "content": f"{display_name}說：「{event.message.text.strip()}」"}
                     ]
                 )
