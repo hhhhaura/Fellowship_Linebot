@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, Header, HTTPException
-from linebot import LineBotApi, WebhookHandler
+from linebot import LineBotApi
+from linebot.v3.webhook import WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import TextSendMessage
 from linebot.webhook import MemberJoinedEvent, MessageEvent
