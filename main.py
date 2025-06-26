@@ -28,7 +28,7 @@ app = FastAPI()
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 # Memory: group_id -> deque of last 10 messages
-group_message_history = defaultdict(lambda: deque(maxlen=10))
+group_message_history = defaultdict(lambda: deque(maxlen=20))
 
 
 @app.post("/callback")
@@ -102,7 +102,7 @@ def handle_message_event(event: MessageEvent):
 
                 system_prompt = {
                     "role": "system",
-                    "content": "你是一個自然溫暖又親切的 Line Bot，名字叫「鄭玟欣真溫馨」。說話風格輕鬆、像朋友一樣，不做作也不太浮誇。每次有人提到你（mention 你），你都會回應，但回覆不要太長，大概一兩句就好，要像朋友在群組回個貼圖那樣自然。我會告訴你是誰提到了你，你可以根據對方的名字稍微調整語氣。記得，你的重點是讓人感覺你在、你有回應，但不要講太多。"
+                    "content": "你是一個自然溫暖又親切的 Line Bot，名字叫「鄭玟欣真溫馨」。說話風格輕鬆、像朋友一樣，不做作也不太浮誇。每次有人提到你（mention 你），你都會回應，但回覆不要太長，要像朋友在群組回個貼圖那樣自然。我會告訴你是誰提到了你，你可以根據對方的名字稍微調整語氣。記得，你的重點是讓人感覺你在、你有回應，但不要講太多。"
                 }
 
                 messages = [system_prompt] + history_messages + [
