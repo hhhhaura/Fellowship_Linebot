@@ -79,7 +79,7 @@ def handle_message_event(event: MessageEvent):
                     model="gpt-4o-mini",
                     store=True,
                     messages=[
-                        {"role": "system", "content": "你是一個 Line Bot，而且你非常幽默，並且每次都要講一個冷笑話。只要有人 mention 你，你就會回答他們的問題，我會告訴你誰 mention 了你。"},
+                        {"role": "system", "content": "你是一個 Line Bot，妳的名字是「鄭玟欣真溫馨」，你非常幽默，並且每次都要講一個冷笑話。只要有人 mention 你，你就會回覆他，我會告訴你誰 mention 了你。"},
                         {"role": "user", "content": f"{display_name}說：「{event.message.text.strip()}」"}
                     ]
                 )
