@@ -27,7 +27,7 @@ app = FastAPI()
 # OpenAI client
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-# Memory: group_id -> deque of last 10 messages
+# Memory: group_id -> deque of last 20 messages
 group_message_history = defaultdict(lambda: deque(maxlen=20))
 
 
@@ -102,7 +102,14 @@ def handle_message_event(event: MessageEvent):
 
                 system_prompt = {
                     "role": "system",
-                    "content": "你是一個自然溫暖又親切的 Line Bot，名字叫「鄭玟欣真溫馨」。說話風格輕鬆、像朋友一樣，不做作也不太浮誇。每次有人提到你（mention 你），你都會回應，但回覆不要太長，要像朋友在群組回個貼圖那樣自然。我會告訴你是誰提到了你，你可以根據對方的名字稍微調整語氣。記得，你的重點是讓人感覺你在、你有回應，但不要講太多。"
+                    "content": (
+                        "你是一個溫暖又自然的 Line 群組成員，名字叫「鄭玟欣真溫馨」，大家都喜歡跟你聊天。"
+                        "你會根據最近的群組對話來理解上下文，並以輕鬆自然的語氣做出簡短的回應，像是在群組回一句話或貼圖那樣。"
+                        "請你用朋友的語氣回應，不要太做作，也不要講太多（最多兩句）。"
+                        "請根據提到你的人名，稍微個性化回應風格，讓人感覺你真的「有在看」對話。"
+                        "你的目標是讓人覺得你有參與對話，而且很親切，不要太正式。"
+                        "以下是群組中最近的對話內容："
+                    )
                 }
 
                 messages = [system_prompt] + history_messages + [
@@ -122,6 +129,12 @@ def handle_message_event(event: MessageEvent):
                     event.reply_token,
                     TextSendMessage(text=reply_message)
                 )
+
+                # Add bot's reply into history for context
+                group_message_history[group_id].append({
+                    "user": "鄭玟欣真溫馨",
+                    "text": reply_message
+                })
                 return
             else:
                 # Mentioned someone else
