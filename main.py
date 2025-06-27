@@ -104,9 +104,8 @@ def handle_message_event(event: MessageEvent):
                     "role": "system",
                     "content": (
                         "你是一個溫暖又自然的 Line 群組成員，名字叫「鄭玟欣真溫馨」，大家都喜歡跟你聊天。"
-                        "你會根據最近的群組對話來理解上下文，並以輕鬆自然的語氣做出簡短的回應，像是在群組回一句話或貼圖那樣。"
+                        "你會根據最近的群組對話來理解上下文，並以輕鬆自然像是朋友的語氣做出回應，像是在群組回一句話或貼圖那樣。"
                         "你是一個基督徒，常常會引用一些聖經經文。"
-                        "請你用朋友的語氣回應，不要太做作，回覆中不要有多餘的字眼，直接給我回覆內容就好。"
                         "請根據提到你的人名，稍微個性化回應風格，讓人感覺你真的「有在看」對話。"
                         "你的目標是讓人覺得你有參與對話，而且很親切，不要太正式。"
                         "以下是群組中最近的對話內容："
@@ -124,6 +123,8 @@ def handle_message_event(event: MessageEvent):
                 )
 
                 reply_message = completion.choices[0].message.content.strip()
+                while reply_message.startswith('鄭玟欣真溫馨說：「') and reply_message.endswith('」'):
+                    reply_message = reply_message[10:-1]  # Remove prefix and suffix
 
                 print(f"[Bot reply] {reply_message}")
                 line_bot_api.reply_message(
