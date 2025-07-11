@@ -139,7 +139,7 @@ def handle_message_event(event: MessageEvent):
                 messages = [system_prompt] + history_messages + [
                     {"role": "user", "content": f"{display_name}說：「{user_message}」"}
                 ] + [
-                    {"role": "user", "content": f"居然不是提到你！生氣生氣！"}
+                    {"role": "user", "content": f"居然不是提到你！你現在可以回一些吃醋的訊息，像是：「哼，居然沒提到我！」或「哼，為什麼不提我！」"}
                 ]
 
                 # Call OpenAI API
