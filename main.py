@@ -98,21 +98,19 @@ def handle_message_event(event: MessageEvent):
             history_messages = [
                 {"role": "user", "content": f"{m['user']}說：「{m['text']}」"} for m in history
             ]
+            system_prompt = {
+                "role": "system",
+                "content": (
+                    "你是一個溫暖又自然的 Line 群組成員，名字叫「鄭玟欣真溫馨」，大家都喜歡跟你聊天。"
+                    "你會根據最近的群組對話來理解上下文，並以輕鬆自然像是朋友的語氣做出回應，像是在群組回一句話或貼圖那樣。"
+                    "你是一個基督徒，常常會引用一些聖經經文。"
+                    "請根據提到你的人名，稍微個性化回應風格，讓人感覺你真的「有在看」對話。"
+                    "你的目標是讓人覺得你有參與對話，而且很親切，不要太正式。"
+                    "以下是群組中最近的對話內容："
+                )
+            }
             if mentioned_user_id == TARGET_USER_ID:
                 # Build message history context
-                
-                system_prompt = {
-                    "role": "system",
-                    "content": (
-                        "你是一個溫暖又自然的 Line 群組成員，名字叫「鄭玟欣真溫馨」，大家都喜歡跟你聊天。"
-                        "你會根據最近的群組對話來理解上下文，並以輕鬆自然像是朋友的語氣做出回應，像是在群組回一句話或貼圖那樣。"
-                        "你是一個基督徒，常常會引用一些聖經經文。"
-                        "請根據提到你的人名，稍微個性化回應風格，讓人感覺你真的「有在看」對話。"
-                        "你的目標是讓人覺得你有參與對話，而且很親切，不要太正式。"
-                        "以下是群組中最近的對話內容："
-                    )
-                }
-
                 messages = [system_prompt] + history_messages + [
                     {"role": "user", "content": f"{display_name}說：「{user_message}」"}
                 ]
@@ -139,20 +137,9 @@ def handle_message_event(event: MessageEvent):
                     "text": reply_message
                 })
                 return
-            else:
+            elif mentioned_user_id != TARGET_USER_ID:
                 # With mention but not 鄭玟欣, with probability 0.25
                 if random.random() < 0.25:
-                    system_prompt = {
-                        "role": "system",
-                        "content": (
-                            "你是一個溫暖又自然的 Line 群組成員，名字叫「鄭玟欣真溫馨」，大家都喜歡跟你聊天。"
-                            "你會根據最近的群組對話來理解上下文，並以輕鬆自然像是朋友的語氣做出回應，像是在群組回一句話或貼圖那樣。"
-                            "你是一個基督徒，常常會引用一些聖經經文。"
-                            "請根據提到你的人名，稍微個性化回應風格，讓人感覺你真的「有在看」對話。"
-                            "你的目標是讓人覺得你有參與對話，而且很親切，不要太正式。"
-                            "以下是群組中最近的對話內容："
-                        )
-                    }
                     messages = [system_prompt] + history_messages + [
                         {"role": "user", "content": f"{display_name}說：「{user_message}」"}
                     ] + [
@@ -181,6 +168,38 @@ def handle_message_event(event: MessageEvent):
                         "text": reply_message
                     })
                 return
+            else:
+                # 隨意加入對話
+                if random.random() < 0.1:
+                    messages = [system_prompt] + history_messages + [
+                        {"role": "user", "content": f"{display_name}說：「{user_message}」"}
+                    ] + [
+                        {"role": "user", "content": f"玟欣說點什麼吧！"}
+                    ]
+
+                    # Call OpenAI API
+                    completion = client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=messages
+                    )
+
+                    reply_message = completion.choices[0].message.content.strip()
+                    while reply_message.startswith('鄭玟欣真溫馨說：「') and reply_message.endswith('」'):
+                        reply_message = reply_message[10:-1]  # Remove prefix and suffix
+
+                    print(f"[Bot reply] {reply_message}")
+                    line_bot_api.reply_message(
+                        event.reply_token,
+                        TextSendMessage(text=reply_message)
+                    )
+
+                    # Add bot's reply into history for context
+                    group_message_history[group_id].append({
+                        "user": "鄭玟欣真溫馨",
+                        "text": reply_message
+                    })
+                return
+
 
     # Easter egg fallback
     if user_message == '鄭玟欣妳好棒ㄛ':
