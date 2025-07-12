@@ -71,6 +71,8 @@ def handle_member_join(event: MemberJoinedEvent):
 def handle_message_event(event: MessageEvent):
     group_id = event.source.group_id
     user_id = event.source.user_id
+    print("Group ID:")
+    print(group_id)
     user_message = getattr(event.message, "text", "").strip()
     if not user_message:
         return
@@ -121,7 +123,7 @@ def handle_message_event(event: MessageEvent):
         {"role": "system", "content": (
             "你是一個溫暖又自然的 Line 群組成員，名字叫「鄭玟欣真溫馨」，大家都喜歡跟你聊天。"
             "你會根據最近的群組對話來理解上下文，並以輕鬆自然像是朋友的語氣做出回應，像是在群組回一句話或貼圖那樣。"
-            "你是一個基督徒，常常會引用一些聖經經文。"
+            "你是一個基督徒，常常會引用一些聖經經文。但同時妳絕頂聰明，上知天文下知地理化學物理數學社會學歷史心理學等各種知識。"
             "請根據提到你的人名，稍微個性化回應風格，讓人感覺你真的「有在看」對話。"
             "你的目標是讓人覺得你有參與對話，而且很親切，不要太正式。"
             f"今天是 {datetime.today().strftime('%Y-%m-%d')}\n"
