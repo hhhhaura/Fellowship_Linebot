@@ -11,7 +11,7 @@ class MemoryManager:
         from langchain_openai import OpenAIEmbeddings  # Lazy import to avoid circular issues
         self.base_dir = base_dir
         self.embeddings = embeddings or OpenAIEmbeddings()
-        self.cache_memory = defaultdict(lambda: deque(maxlen=15))
+        self.cache_memory = defaultdict(lambda: deque(maxlen=20))
         self.dialogue_counter = defaultdict(int)
         self.llm = llm
 
@@ -45,6 +45,23 @@ class MemoryManager:
         index.add_documents(docs)
         index.save_local(self._get_group_path(group_id, memory_type))
 
+    def clear_texts(self, group_id, memory_type):
+        """
+        Clear the FAISS memory index and associated files for a given group_id and memory_type.
+        """
+        path = self._get_group_path(group_id, memory_type)
+        if os.path.exists(path):
+            for file_name in os.listdir(path):
+                file_path = os.path.join(path, file_name)
+                try:
+                    os.remove(file_path)
+                except Exception as e:
+                    print(f"Failed to remove {file_path}: {e}")
+            print(f"[clear_texts] Cleared memory at {path}")
+        else:
+            print(f"[clear_texts] No memory found at {path}")
+
+
     def query_memory(self, group_id, memory_type, query, k=3):
         index = self.load_or_create_index(group_id, memory_type)
         results = index.similarity_search(query, k=k)
@@ -58,7 +75,7 @@ class MemoryManager:
     def get_cache(self, group_id):
         return self.cache_memory[group_id]
 
-    def add_dialogue_with_summary(self, group_id, user, text, k=5):
+    def add_dialogue_with_summary(self, group_id, user, text, k=20):
         # Add to cache and increment counter
         self.add_to_cache(group_id, user, text)
         self.dialogue_counter[group_id] += 1

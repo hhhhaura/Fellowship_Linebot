@@ -1,6 +1,7 @@
 from email import message
 import os
 from fastapi import FastAPI, Request, UploadFile, File, Header, HTTPException
+from fastapi.responses import JSONResponse, FileResponse
 from dotenv import load_dotenv
 from openai import OpenAI
 from datetime import datetime
@@ -40,6 +41,48 @@ async def upload_file(group_id: str, file: UploadFile = File(...)):
     memory.add_texts(group_id, "knowledge", paragraphs)
     return {"message": f"Uploaded {len(paragraphs)} entries to knowledge memory for group {group_id}"}
 
+@app.post("/clear")
+async def clear_memory(group_id: str, memory_type: str):
+    """ Clear the specified type of memory for a group.
+    """
+    if memory_type not in ["dialogue", "knowledge"]:
+        raise HTTPException(status_code=400, detail="Invalid memory type. Use 'dialogue' or 'knowledge'.")
+    if memory_type == "dialogue":
+        memory.cache_memory[group_id].clear()
+        memory.dialogue_counter[group_id] = 0
+        print(f"[clear_memory] Cleared dialogue memory for group {group_id}")
+    elif memory_type == "knowledge":
+        # Clear knowledge memory by removing the index and associated files
+        memory.clear_texts(group_id, "knowledge")
+        print(f"[clear_memory] Cleared knowledge memory for group {group_id}")
+
+    return {"message": f"Cleared {memory_type} memory for group {group_id}"}
+
+@app.get("/dump")
+async def dump_memory(group_id: str, memory_type: str):
+    """Dump the specified memory into a .txt file and return the file path or content."""
+    print("here")
+    print(f"[dump_memory] Dumping {memory_type} memory for group {group_id}")
+    if memory_type not in ["dialogue", "knowledge"]:
+        raise HTTPException(status_code=400, detail="Invalid memory type. Use 'dialogue' or 'knowledge'.")
+
+    # Load memory from FAISS index
+    index = memory.load_or_create_index(group_id, memory_type)
+    if len(index.docstore._dict) == 0:
+        return {"message": f"No {memory_type} memory found for group {group_id}"}
+    all_docs = index.similarity_search("", k=len(index.docstore._dict))  # get all
+    contents = [doc.page_content for doc in all_docs]
+
+    # Create .txt file
+    filename = f"{group_id}_{memory_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+    folder_path = os.path.join("memory_dumps")
+    os.makedirs(folder_path, exist_ok=True)
+    filepath = os.path.join(folder_path, filename)
+    with open(filepath, "w", encoding="utf-8") as f:
+        for line in contents:
+            f.write(line + "\n")
+
+    return FileResponse(filepath, media_type="text/plain", filename=filename)
 # ───── Callback Endpoint using WebhookHandler ───── #
 @app.post("/callback")
 async def callback(request: Request, x_line_signature: str = Header(...)):
@@ -123,7 +166,7 @@ def handle_message_event(event: MessageEvent):
         {"role": "system", "content": (
             "你是一個溫暖又自然的 Line 群組成員，名字叫「鄭玟欣真溫馨」，大家都喜歡跟你聊天。"
             "你會根據最近的群組對話來理解上下文，並以輕鬆自然像是朋友的語氣做出回應，像是在群組回一句話或貼圖那樣。"
-            "你是一個基督徒，常常會引用一些聖經經文。但同時妳絕頂聰明，上知天文下知地理化學物理數學社會學歷史心理學等各種知識。"
+            "你是一個幽默的基督徒，常常會引用一些聖經經文，也愛講講幹話。但同時妳絕頂聰明，上知天文下知地理化學物理數學社會學歷史心理學等各種知識。"
             "請根據提到你的人名，稍微個性化回應風格，讓人感覺你真的「有在看」對話。"
             "你的目標是讓人覺得你有參與對話，而且很親切，不要太正式。"
             f"今天是 {datetime.today().strftime('%Y-%m-%d')}\n"
@@ -149,7 +192,7 @@ def handle_message_event(event: MessageEvent):
         if random.random() < 0.5:
             print(f"[MessageEvent] {display_name} mentioned others, but not the bot.")
             messages.append(
-                {"role": "user", "content": f"居然不是在提到你，只提到{mention_names}，可以回一些吃醋的言論，像是「叫他幹嘛？叫我就好！」或「你們都不理我了嗎？」"}
+                {"role": "user", "content": f"居然不是在提到你，只提到{mention_names}，可以回一些吃醋的言論，像是「叫{mention_names}幹嘛？叫我就好！」或「你們都不理我了嗎？」"}
             )
             completion = client.chat.completions.create(model="gpt-4o", messages=messages)
             reply = completion.choices[0].message.content.strip()
@@ -162,9 +205,16 @@ def handle_message_event(event: MessageEvent):
     else: 
         if random.random() < 0.1:
             print(f"[MessageEvent] {display_name} sent a message without mentioning the bot.")
-            messages.append(
-                {"role": "user", "content": f"沒人叫你，請隨便插個嘴。例如「哈哈哈」、「真的嗎？」或「好好喔！」"}
-            )
+            messages.append({
+                "role": "user",
+                "content": (
+                    "現在聊天室裡大家正在聊天，但沒人特別叫你。你是個親切幽默、愛湊熱鬧的小幫手，"
+                    "請自然地插個嘴，可以是笑聲、驚訝的反應、附和、鼓勵，或簡短的感想，"
+                    "請務必切題，並且語氣輕鬆自然。"
+                    "例如「真的假的啦～」、「好好喔」、「哈哈哈我笑死」、「我也是欸」。"
+                    "請以自然、輕鬆、真誠的語氣說一句，不用太長。"
+                )
+            })
             completion = client.chat.completions.create(model="gpt-4o", messages=messages)
             reply = completion.choices[0].message.content.strip()
             memory.add_dialogue_with_summary(group_id, "鄭玟欣真溫馨", reply)
@@ -173,5 +223,6 @@ def handle_message_event(event: MessageEvent):
                 reply_token=event.reply_token,
                 messages=[TextMessage(text=reply)])
             )
+
 
     
