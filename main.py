@@ -102,7 +102,11 @@ def handle_member_join(event: MemberJoinedEvent):
         if user_id:
             profile = line_bot_api.get_group_member_profile(group_id, user_id)
             display_name = profile.display_name
-            welcome_message = f'歡迎～歡迎～我們歡迎 {display_name}！'
+            welcome_message = f"歡迎～歡迎～我們歡迎 {display_name}！"
+            f"歡迎來到光鹽新生群組！這裡是鄭玟欣真溫馨的家，請隨意發問、聊天或分享任何事情！"
+            "如果你有任何問題或需要幫助，請隨時 @鄭玟欣真溫馨 或其他成員，我們都會很樂意幫助你！"
+            "記得查看記事本中的新生日程，並填寫新生資料搜集表單和報名小迎新！"
+            "再次歡迎你加入我們的大家庭！希望你在這裡能夠找到溫暖和支持！"
             line_bot_api.reply_message(
                 event.reply_token,
                 ReplyMessageRequest(messages=[TextMessage(text=welcome_message)])
