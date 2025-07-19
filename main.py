@@ -107,7 +107,7 @@ def handle_member_join(event: MemberJoinedEvent):
             "如果你有任何問題或需要幫助，請隨時 @鄭玟欣真溫馨，她會很樂意幫助你！\n\n"
             "記得查看記事本中的新生日程，並填寫新生資料搜集表單和報名小迎新～"
             "再次歡迎你加入我們的大家庭！希望你在這裡能夠找到溫暖和支持！\n\n"
-            "聯合迎新報名表 https://docs.google.com/forms/d/e/1FAIpQLSeG3nMN4BMoeq7p3EGlZWXVY8nadTyCwqrLWqYjjiB_h6EiOw/viewform\n"
+            "小迎新報名表 https://docs.google.com/forms/d/e/1FAIpQLScJh__YDeMEoUYeJtMVkorbsYnUPp771LEQ3RfdIHkdeE0i3Q/viewform\n"
             "新生資料蒐集表 https://docs.google.com/forms/d/e/1FAIpQLSeY8YCwCroUhwis1SPuMc_CHtrBqM1wN3q_n_LFnOPEAUEV9Q/viewform?usp=header\n"
             )
 
@@ -297,8 +297,7 @@ def handle_message_event(event: MessageEvent):
                     "「我現在沒辦法思考 但我還是想說我同意」\n"
                     "「聽起來好累喔…但感覺不參與一下我會錯過什麼」\n"
                     "「好啦 我只是出來證明我還活著」\n"
-                    "「我不知道怎麼回 但我在這裡」\n"
-                    "「我聽到桌遊兩個字直接靈魂重啟」\n"
+                    "「我不知道怎麼回 但我在這裡 請差遣我」\n"
                     "請你講一句符合這種輕鬆、癱軟但還是很人味的亂入語句。") 
                 }
             )
