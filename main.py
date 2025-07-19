@@ -228,7 +228,7 @@ def handle_message_event(event: MessageEvent):
 
     if has_mention:
         messages.append(
-            {"role": "user", "content": f"有人提到你，請回應"}
+            {"role": "user", "content": f"請回應 @{display_name} 的訊息"}
         )
         completion = client.chat.completions.create(model="gpt-4o", messages=messages)
         reply = completion.choices[0].message.content.strip()
