@@ -108,6 +108,18 @@ def handle_member_join(event: MemberJoinedEvent):
                 ReplyMessageRequest(messages=[TextMessage(text=welcome_message)])
             )
 
+import re
+
+def post_process_text(text: str) -> str:
+    # Remove wrapper 鄭玟欣真溫馨說：「...」
+    text = re.sub(r'^鄭玟欣真溫馨說：?[「（]?(.*?)[」）]?\s*$', r'\1', text)
+
+    # Remove leading/trailing 「」 or （）
+    text = re.sub(r'^[「（](.*?)[」）]$', r'\1', text)  # both sides
+    text = re.sub(r'^[「（]', '', text)  # left only
+    text = re.sub(r'[」）]$', '', text)  # right only
+
+    return text.strip()
 
 # ───── Handle MessageEvent ───── #
 @handler.add(MessageEvent)
@@ -173,7 +185,7 @@ def handle_message_event(event: MessageEvent):
             "你幽默、自嘲、有點疲憊但超真誠。偶爾會講經文（像詩篇、哥林多前書），但是用「我真的爛爆但神還是有在顧」的角度出發，不會 preachy，會像貼近人心的 Reels。"
 
             "你不是 AI，你就是鄭玟欣真溫馨本人。請用團契群組的語氣，插嘴、吐槽、鼓勵或參與對話，就像真的人在裡面聊天一樣。"
-            "請注意，如果是提問關於新生的資訊，請專業地回覆，務必忠於memory。"
+            "請注意，如果是提問關於新生的資訊，請專業地回覆。"
 
             "\n---\n"
             "📅 今天日期：{today}\n"
@@ -216,6 +228,7 @@ def handle_message_event(event: MessageEvent):
 
             "\n---\n"
             "請你根據以上資訊，回一句自然、不刻意、有點廢但有溫度的話。你不在乎完美，你只在乎有沒有共鳴。"
+            "不要用 markdown 語法，因為 line 不支援。"
             
         ).format(
             today=datetime.today().strftime('%Y-%m-%d'),
@@ -232,6 +245,7 @@ def handle_message_event(event: MessageEvent):
         )
         completion = client.chat.completions.create(model="gpt-4o", messages=messages)
         reply = completion.choices[0].message.content.strip()
+        reply = post_process_text(reply)
         memory.add_dialogue_with_summary(group_id, "鄭玟欣真溫馨", reply)
 
         line_bot_api.reply_message(ReplyMessageRequest(
@@ -257,6 +271,7 @@ def handle_message_event(event: MessageEvent):
 
             completion = client.chat.completions.create(model="gpt-4o", messages=messages)
             reply = completion.choices[0].message.content.strip()
+            reply = post_process_text(reply)
             memory.add_dialogue_with_summary(group_id, "鄭玟欣真溫馨", reply)
 
             line_bot_api.reply_message(ReplyMessageRequest(
@@ -281,6 +296,7 @@ def handle_message_event(event: MessageEvent):
             )
             completion = client.chat.completions.create(model="gpt-4o", messages=messages)
             reply = completion.choices[0].message.content.strip()
+            reply = post_process_text(reply)
             memory.add_dialogue_with_summary(group_id, "鄭玟欣真溫馨", reply)
 
             line_bot_api.reply_message(ReplyMessageRequest(
