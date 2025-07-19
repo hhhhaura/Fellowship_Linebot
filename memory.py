@@ -11,7 +11,7 @@ class MemoryManager:
         from langchain_openai import OpenAIEmbeddings  # Lazy import to avoid circular issues
         self.base_dir = base_dir
         self.embeddings = embeddings or OpenAIEmbeddings()
-        self.cache_memory = defaultdict(lambda: deque(maxlen=20))
+        self.cache_memory = defaultdict(lambda: deque(maxlen=15))
         self.dialogue_counter = defaultdict(int)
         self.llm = llm
 
